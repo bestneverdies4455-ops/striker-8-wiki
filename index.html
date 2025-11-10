@@ -100,14 +100,12 @@
 
         /**
          * ฐานข้อมูลตัวละคร
-         * image: อัปเดตเป็น Array of Strings (Base64) สำหรับ Gallery
-         * team_logo: Base64 String สำหรับโลโก้ทีม
          */
         const initialCharacterData = [
             // {
             //     id: 1,
-            //     image: ['data:image/png;base64,...', 'data:image/png;base64,...'], // เป็น Array
-            //     team_logo: 'data:image/png;base64,...', // เพิ่ม Team Logo
+            //     image: ['data:image/png;base64,...'],
+            //     team_logo: 'data:image/png;base64,...', 
             //     number: 8,
             //     name_th: 'ฟ้าใส',
             //     name_en: 'Fahsai',
@@ -141,36 +139,9 @@
             localStorage.setItem('projectz_story', JSON.stringify(storyData));
         }
 
-        /**
-         * Helper: แยกข้อมูลรวมออกเป็น Name, Position, Ability, PersonalInfo
-         * @param {string} infoText - ข้อความจาก General Info (แต่ละบรรทัดคือข้อมูล 1 ช่อง)
-         * @returns {object} {name, position, ability, personal_info}
-         */
-        function parseGeneralInfo(infoText) {
-            const lines = infoText.split('\n').map(line => line.trim());
-            return {
-                name: lines[0] || '',
-                position: lines[1] || '',
-                ability: lines[2] || '',
-                personal_info: lines.slice(3).join('\n').trim() || ''
-            };
-        }
-
-        /**
-         * Helper: รวม Name, Position, Ability, PersonalInfo เข้าเป็นข้อความเดียวสำหรับ Textarea
-         * @param {object} char - Object ตัวละคร
-         * @param {'th'|'en'} lang - ภาษา
-         * @returns {string} ข้อความรวม
-         */
-        function combineGeneralInfo(char, lang) {
-            const name = char[`name_${lang}`] || '';
-            const position = char[`position_${lang}`] || '';
-            const ability = char[`ability_${lang}`] || '';
-            const personalInfo = char[`personal_info_${lang}`] || '';
-            
-            // ใช้โครงสร้าง 4 บรรทัดหลัก + บรรทัดต่อไปเป็น personal info
-            return [name, position, ability, personalInfo].join('\n');
-        }
+        // --- DEPRECATED HELPER FUNCTIONS (ลบทิ้ง เพราะยกเลิก General Info) ---
+        // function parseGeneralInfo(infoText) { ... }
+        // function combineGeneralInfo(char, lang) { ... }
 
 
         /**
@@ -206,15 +177,22 @@
                 editButton: "แก้ไข",
                 labelImageFile: "อัปโหลดรูปตัวละคร (PNG หลายรูปได้)",
                 labelImageFileEdit: "อัปโหลดรูปตัวละครใหม่ (PNG หลายรูปได้)",
-                labelTeamLogo: "อัปโหลดโลโก้ทีม (PNG 1 รูป) (ไม่บังคับ)", // UPDATED TEXT
-                labelTeamLogoEdit: "อัปโหลดโลโก้ทีมใหม่ (PNG 1 รูป) (ไม่บังคับ)", // UPDATED TEXT
+                labelTeamLogo: "อัปโหลดโลโก้ทีม (PNG 1 รูป) (ไม่บังคับ)",
+                labelTeamLogoEdit: "อัปโหลดโลโก้ทีมใหม่ (PNG 1 รูป) (ไม่บังคับ)",
                 labelNumber: "หมายเลขเสื้อ",
-                labelGeneralInfoTH: "ข้อมูลรวม (ไทย)",
-                labelGeneralInfoEN: "ข้อมูลรวม (อังกฤษ)",
+                // NEW LABELS
+                labelNameTH: "ชื่อตัวละคร (ไทย)",
+                labelNameEN: "Character Name (EN)",
+                labelPositionTH: "ตำแหน่ง (ไทย)",
+                labelPositionEN: "Position (EN)",
+                labelAbilityTH: "พลังพิเศษ (ไทย)",
+                labelAbilityEN: "Special Ability (EN)",
+                labelPersonalInfoTH: "ข้อมูลส่วนตัว (ไทย)",
+                labelPersonalInfoEN: "Personal Info (EN)",
+                // END NEW LABELS
+
                 labelTeamTH: "ทีม (ไทย)", 
                 labelTeamEN: "Team (EN)", 
-                infoFormatTH: "กรอกข้อมูลเรียงตามลำดับ:\n1. ชื่อตัวละคร\n2. ตำแหน่ง\n3. พลังพิเศษ\n4. ข้อมูลส่วนตัว",
-                infoFormatEN: "Enter info in order:\n1. Character Name\n2. Position\n3. Special Ability\n4. Personal Info (Bio)",
                 saveButton: "บันทึกตัวละคร",
                 saveChangesButton: "บันทึกการเปลี่ยนแปลง",
                 saveSuccess: "บันทึกตัวละครเรียบร้อยแล้ว!",
@@ -222,7 +200,9 @@
                 manualSave: "บันทึกข้อมูล",
                 saveManualSuccess: "ข้อมูลถูกบันทึกในเบราว์เซอร์แล้ว",
                 formErrorFile: "กรุณาอัปโหลดรูปภาพตัวละคร (PNG)",
-                formErrorTeamLogo: "กรุณาอัปโหลดโลโก้ทีม (PNG)", // Keeping error for consistency if file is present but wrong type
+                formErrorTeamLogo: "กรุณาอัปโหลดโลโก้ทีม (PNG)", 
+                formErrorNameExists: (name) => `ข้อผิดพลาด: ชื่อ '${name}' ซ้ำกับตัวละครอื่นแล้ว!`, // NEW ERROR
+                
                 // Auth Modal Text
                 authTitle: "ใส่รหัสผ่านผู้ดูแลระบบ",
                 authIntro: "กรุณาใส่รหัสผ่านเพื่อเข้าถึงการจัดการข้อมูล",
@@ -285,15 +265,21 @@
                 editButton: "Edit",
                 labelImageFile: "Upload Character Images (Multiple PNGs allowed)",
                 labelImageFileEdit: "Upload New Character Images (Multiple PNGs allowed)",
-                labelTeamLogo: "Upload Team Logo (1 PNG file) (Optional)", // UPDATED TEXT
-                labelTeamLogoEdit: "Upload New Team Logo (1 PNG file) (Optional)", // UPDATED TEXT
+                labelTeamLogo: "Upload Team Logo (1 PNG file) (Optional)", 
+                labelTeamLogoEdit: "Upload New Team Logo (1 PNG file) (Optional)", 
                 labelNumber: "Jersey Number",
-                labelGeneralInfoTH: "General Info (TH)",
-                labelGeneralInfoEN: "General Info (EN)",
+                // NEW LABELS
+                labelNameTH: "ชื่อตัวละคร (ไทย)",
+                labelNameEN: "Character Name (EN)",
+                labelPositionTH: "ตำแหน่ง (ไทย)",
+                labelPositionEN: "Position (EN)",
+                labelAbilityTH: "พลังพิเศษ (ไทย)",
+                labelAbilityEN: "Special Ability (EN)",
+                labelPersonalInfoTH: "ข้อมูลส่วนตัว (ไทย)",
+                labelPersonalInfoEN: "Personal Info (EN)",
+                // END NEW LABELS
                 labelTeamTH: "ทีม (ไทย)", 
                 labelTeamEN: "Team (EN)", 
-                infoFormatTH: "Enter info in order:\n1. Character Name\n2. Position\n3. Special Ability\n4. Personal Info (Bio)",
-                infoFormatEN: "Enter info in order:\n1. Character Name\n2. Position\n3. Special Ability\n4. Personal Info (Bio)",
                 saveButton: "Save Character",
                 saveChangesButton: "Save Changes",
                 saveSuccess: "Character saved successfully!",
@@ -302,6 +288,8 @@
                 saveManualSuccess: "Data saved to browser storage",
                 formErrorFile: "Please upload character images (PNGs).",
                 formErrorTeamLogo: "Please upload a team logo (PNG).",
+                formErrorNameExists: (name) => `Error: Name '${name}' already exists!`, // NEW ERROR
+                
                 // Auth Modal Text
                 authTitle: "Enter Admin Password",
                 authIntro: "Please enter the password to access data management.",
@@ -886,7 +874,8 @@
             const renderInput = (id, labelKey, type = 'text', value = '', required = true, multiple = false) => {
                 const acceptAttr = type === 'file' ? 'accept="image/png"' : '';
                 const multipleAttr = multiple ? 'multiple' : '';
-                // NEW: ลบ required ออกสำหรับ Team Logo (labelKey === 'labelTeamLogo' || labelKey === 'labelTeamLogoEdit')
+                
+                // NEW: ลบ required ออกสำหรับ Team Logo และใช้ required สำหรับ Name/Number/Team
                 const isTeamLogoField = labelKey === 'labelTeamLogo' || labelKey === 'labelTeamLogoEdit';
                 const reqAttr = (required && !isTeamLogoField) ? 'required' : ''; 
 
@@ -899,13 +888,12 @@
             };
             
             // Helper: สร้าง <textarea>
-            const renderTextArea = (id, labelKey, infoFormatKey, value = '', required = true) => {
+            const renderTextArea = (id, labelKey, value = '', required = false) => { // เปลี่ยนเป็น false สำหรับ Personal Info
                 const reqAttr = required ? 'required' : '';
                 return `
                     <div class="mb-4">
                         <label for="${id}" class="block text-sm font-semibold text-gray-700 mb-1">${t(labelKey)}</label>
-                        <textarea id="${id}" name="${id}" rows="8" class="w-full p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm" placeholder="${t(infoFormatKey)}" ${reqAttr}>${value}</textarea>
-                        <p class="text-xs text-gray-500 mt-1">${t(infoFormatKey)}</p>
+                        <textarea id="${id}" name="${id}" rows="4" class="w-full p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" ${reqAttr}>${value}</textarea>
                     </div>
                 `;
             };
@@ -913,10 +901,6 @@
             // ดึงค่าสำหรับ pre-fill (ถ้ามี)
             const val = (field, defaultValue = '') => (isEdit && char) ? (char[field] || defaultValue) : defaultValue;
             
-            // ดึงค่า General Info สำหรับ Textarea
-            const infoTH = isEdit ? combineGeneralInfo(char, 'th') : '';
-            const infoEN = isEdit ? combineGeneralInfo(char, 'en') : '';
-
             // แสดงรูปภาพตัวละครปัจจุบัน (ถ้ามี)
             const currentImages = Array.isArray(val('image')) ? val('image') : [];
             const currentImagesDisplay = currentImages.map((src, index) => `
@@ -945,16 +929,37 @@
                         <!-- หมายเลขเสื้อ -->
                         ${renderInput('form-number', 'labelNumber', 'number', val('number'), true)}
 
-                        <!-- ทีม -->
+                        <!-- ชื่อตัวละคร -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            ${renderInput('form-name-th', 'labelNameTH', 'text', val('name_th'), true)}
+                            ${renderInput('form-name-en', 'labelNameEN', 'text', val('name_en'), true)}
+                        </div>
+
+                        <!-- ตำแหน่ง -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            ${renderInput('form-position-th', 'labelPositionTH', 'text', val('position_th'), true)}
+                            ${renderInput('form-position-en', 'labelPositionEN', 'text', val('position_en'), true)}
+                        </div>
+                        
+                        <!-- พลังพิเศษ -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            ${renderInput('form-ability-th', 'labelAbilityTH', 'text', val('ability_th'), true)}
+                            ${renderInput('form-ability-en', 'labelAbilityEN', 'text', val('ability_en'), true)}
+                        </div>
+
+                        <!-- ทีม -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                             ${renderInput('form-team-th', 'labelTeamTH', 'text', val('team_th'), true)}
                             ${renderInput('form-team-en', 'labelTeamEN', 'text', val('team_en'), true)}
                         </div>
-
-                        <!-- ข้อมูลรวม (General Info) -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                            ${renderTextArea('form-general-info-th', 'labelGeneralInfoTH', 'infoFormatTH', infoTH)}
-                            ${renderTextArea('form-general-info-en', 'labelGeneralInfoEN', 'infoFormatEN', infoEN)}
+                        
+                        <!-- ข้อมูลส่วนตัว (Textarea) -->
+                        <div class="mt-4">
+                            <h3 class="text-lg font-bold text-gray-800 mb-2">${t('fieldPersonalInfo')}</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                ${renderTextArea('form-personal-info-th', 'labelPersonalInfoTH', val('personal_info_th'), false)}
+                                ${renderTextArea('form-personal-info-en', 'labelPersonalInfoEN', val('personal_info_en'), false)}
+                            </div>
                         </div>
 
                         <button type="submit" class="w-full bg-blue-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors shadow-lg mt-6">
@@ -1275,13 +1280,53 @@
                  handleStoryEditSubmit(e);
             }
         }
+
+        /**
+         * Helper: ตรวจสอบว่าชื่อตัวละครซ้ำหรือไม่
+         * @param {string} nameTH - ชื่อไทย
+         * @param {string} nameEN - ชื่ออังกฤษ
+         * @param {number|null} excludeId - ID ตัวละครที่ต้องการยกเว้น (สำหรับโหมดแก้ไข)
+         * @returns {string|null} - ชื่อที่ซ้ำกัน หรือ null ถ้าไม่ซ้ำ
+         */
+        function checkDuplicateName(nameTH, nameEN, excludeId = null) {
+            const normalizedTH = nameTH.trim().toLowerCase();
+            const normalizedEN = nameEN.trim().toLowerCase();
+
+            const duplicate = characterData.find(char => {
+                if (excludeId !== null && char.id === excludeId) {
+                    return false;
+                }
+                const charNameTH = char.name_th.trim().toLowerCase();
+                const charNameEN = char.name_en.trim().toLowerCase();
+                
+                // ตรวจสอบความซ้ำกันของชื่อภาษาไทย หรือชื่อภาษาอังกฤษ
+                return (normalizedTH && charNameTH === normalizedTH) || (normalizedEN && charNameEN === normalizedEN);
+            });
+
+            if (duplicate) {
+                return duplicate.name_th || duplicate.name_en;
+            }
+            return null;
+        }
+
         
         /**
          * จัดการการ "เพิ่ม" ตัวละครใหม่
          */
         async function handleAddSubmit(e) {
             
-            // 1. ตรวจสอบไฟล์ภาพตัวละคร (บังคับ)
+            // ดึงชื่อตัวละครที่กำลังจะถูกเพิ่ม
+            const newNameTH = document.getElementById('form-name-th').value;
+            const newNameEN = document.getElementById('form-name-en').value;
+
+            // NEW: 1. ตรวจสอบชื่อซ้ำซ้อน
+            const duplicateName = checkDuplicateName(newNameTH, newNameEN);
+            if (duplicateName) {
+                showTempMessage(t('formErrorNameExists', duplicateName), 'red');
+                return;
+            }
+
+            // 2. ตรวจสอบไฟล์ภาพตัวละคร (บังคับ)
             const fileInput = document.getElementById('form-image');
             const files = fileInput.files;
             
@@ -1290,7 +1335,7 @@
                 return;
             }
 
-            // 2. จัดการไฟล์โลโก้ทีม (ไม่บังคับ)
+            // 3. จัดการไฟล์โลโก้ทีม (ไม่บังคับ)
             const teamLogoInput = document.getElementById('form-team-logo');
             const teamLogoFile = teamLogoInput.files[0];
             let teamLogoUrl = null;
@@ -1309,7 +1354,7 @@
                 }
             }
             
-            // 3. อ่านไฟล์ภาพตัวละคร (Async)
+            // 4. อ่านไฟล์ภาพตัวละคร (Async)
             let imageArray;
             try {
                 imageArray = await readFileAsDataURL(files);
@@ -1318,10 +1363,6 @@
                 showTempMessage('Error reading file.', 'red');
                 return;
             }
-
-            // 4. แยกข้อมูลรวม
-            const infoTH = parseGeneralInfo(document.getElementById('form-general-info-th').value);
-            const infoEN = parseGeneralInfo(document.getElementById('form-general-info-en').value);
 
             // 5. หา ID ใหม่
             const allIds = characterData.map(c => c.id).filter(id => !isNaN(id));
@@ -1335,15 +1376,15 @@
                 number: parseInt(document.getElementById('form-number').value) || 0,
                 team_th: document.getElementById('form-team-th').value, 
                 team_en: document.getElementById('form-team-en').value, 
-                // ข้อมูลที่ถูกแยก
-                name_th: infoTH.name,
-                position_th: infoTH.position,
-                ability_th: infoTH.ability,
-                personal_info_th: infoTH.personal_info,
-                name_en: infoEN.name,
-                position_en: infoEN.position,
-                ability_en: infoEN.ability,
-                personal_info_en: infoEN.personal_info,
+                // NEW: ใช้ค่าจากช่อง Input โดยตรง
+                name_th: newNameTH,
+                position_th: document.getElementById('form-position-th').value,
+                ability_th: document.getElementById('form-ability-th').value,
+                personal_info_th: document.getElementById('form-personal-info-th').value,
+                name_en: newNameEN,
+                position_en: document.getElementById('form-position-en').value,
+                ability_en: document.getElementById('form-ability-en').value,
+                personal_info_en: document.getElementById('form-personal-info-en').value,
             };
             
             // เพิ่มตัวละครใหม่ลงในอาร์เรย์
@@ -1373,8 +1414,19 @@
             }
             
             const existingChar = characterData[charIndex];
+
+            // ดึงชื่อตัวละครที่แก้ไข
+            const newNameTH = document.getElementById('form-name-th').value;
+            const newNameEN = document.getElementById('form-name-en').value;
             
-            // 1. จัดการรูปภาพตัวละคร (Gallery)
+            // NEW: 1. ตรวจสอบชื่อซ้ำซ้อน (ยกเว้น ID ปัจจุบัน)
+            const duplicateName = checkDuplicateName(newNameTH, newNameEN, charId);
+            if (duplicateName) {
+                showTempMessage(t('formErrorNameExists', duplicateName), 'red');
+                return;
+            }
+            
+            // 2. จัดการรูปภาพตัวละคร (Gallery)
             const fileInput = document.getElementById('form-image');
             const files = fileInput.files;
             let imageArray = existingChar.image; // ใช้รูปเดิมเป็น default
@@ -1394,7 +1446,7 @@
                 }
             }
 
-            // 2. จัดการรูปภาพโลโก้ทีม (ไม่บังคับ)
+            // 3. จัดการรูปภาพโลโก้ทีม (ไม่บังคับ)
             const teamLogoInput = document.getElementById('form-team-logo');
             const teamLogoFile = teamLogoInput.files[0];
             let teamLogoUrl = existingChar.team_logo; // ใช้โลโก้เดิมเป็น default
@@ -1412,11 +1464,6 @@
                     return;
                 }
             }
-
-
-            // 3. แยกข้อมูลรวม
-            const infoTH = parseGeneralInfo(document.getElementById('form-general-info-th').value);
-            const infoEN = parseGeneralInfo(document.getElementById('form-general-info-en').value);
             
             // 4. อัปเดต Object ตัวละคร
             const updatedCharacter = {
@@ -1426,15 +1473,15 @@
                 team_en: document.getElementById('form-team-en').value,
                 image: imageArray, // Array of Base64
                 team_logo: teamLogoUrl, // Base64 String (หรือ null)
-                // ข้อมูลที่ถูกแยก
-                name_th: infoTH.name,
-                position_th: infoTH.position,
-                ability_th: infoTH.ability,
-                personal_info_th: infoTH.personal_info,
-                name_en: infoEN.name,
-                position_en: infoEN.position,
-                ability_en: infoEN.ability,
-                personal_info_en: infoEN.personal_info,
+                // NEW: ใช้ค่าจากช่อง Input โดยตรง
+                name_th: newNameTH,
+                position_th: document.getElementById('form-position-th').value,
+                ability_th: document.getElementById('form-ability-th').value,
+                personal_info_th: document.getElementById('form-personal-info-th').value,
+                name_en: newNameEN,
+                position_en: document.getElementById('form-position-en').value,
+                ability_en: document.getElementById('form-ability-en').value,
+                personal_info_en: document.getElementById('form-personal-info-en').value,
             };
             
             // 5. แทนที่ในอาร์เรย์
