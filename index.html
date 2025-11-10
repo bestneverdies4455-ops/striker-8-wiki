@@ -4,7 +4,1487 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
+    <!-- SEO Meta Tags (จะถูกอัปเดตโดย JavaScript) --><!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
     <!-- SEO Meta Tags (จะถูกอัปเดตโดย JavaScript) -->
+    <title>กองหน้าหมายเลข 8 | ฐานข้อมูลตัวละคร</title>
+    <meta name="description" content="ฐานข้อมูลตัวละครจากการ์ตูนฟุตบอล กองหน้าหมายเลข 8 - มารู้จักกับนักเตะ พลังพิเศษ และเรื่องราวของพวกเขา">
+    <meta property="og:title" content="กองหน้าหมายเลข 8 | ฐานข้อมูลตัวละคร">
+    <meta property="og:description" content="ฐานข้อมูลตัวละครจากการ์ตูนฟุตบอล กองหน้าหมายเลข 8">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://placehold.co/1200x630/3b82f6/ffffff?text=Striker+8">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter (EN) + Noto Sans Thai (TH) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+Thai:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ใช้ฟอนต์ที่ดาวน์โหลดมา */
+        body {
+            font-family: 'Inter', 'Noto Sans Thai', sans-serif;
+        }
+        /* ซ่อน scrollbar แต่ยัง scroll ได้ */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        /* Style สำหรับ Gallery */
+        .gallery-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+        .gallery-inner {
+            display: flex;
+            transition: transform 0.3s ease-in-out;
+        }
+        .gallery-inner img {
+            width: 100%;
+            flex-shrink: 0;
+            object-fit: cover;
+            aspect-ratio: 1 / 1;
+        }
+        .gallery-nav button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 9999px;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+        .gallery-nav button:hover {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900 min-h-screen">
+
+    <!-- App Container -->
+    <div id="app" class="max-w-6xl mx-auto p-4 md:p-6">
+        <!-- เนื้อหาจะถูกสร้างโดย JavaScript -->
+        <div class="text-center p-12">
+            <p class="text-2xl font-semibold">กำลังโหลด...</p>
+        </div>
+    </div>
+    
+    <!-- AUTH MODAL: โครงสร้าง Modal สำหรับใส่รหัสผ่าน -->
+    <div id="auth-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[200] flex items-center justify-center p-4 transition-opacity duration-300 opacity-0">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 transform translate-y-[-10px] transition-transform duration-300">
+            <h3 class="text-xl font-bold text-blue-700 mb-4 auth-title"></h3>
+            <p class="text-sm text-gray-600 mb-4 auth-intro"></p>
+            <input type="password" id="auth-password" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4" placeholder="">
+            <div class="flex justify-end space-x-3">
+                <button id="auth-cancel" class="px-4 py-2 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"></button>
+                <button id="auth-submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"></button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // --- 0. CONFIG & AUTH ---
+        const ADMIN_PASSWORD = "0993954188Best";
+        let isAuthenticating = false; // Flag เพื่อป้องกันการเรียกซ้ำขณะกำลังตรวจสอบรหัสผ่าน
+        let authResolve = null; // สำหรับ Promise ของ showPasswordPrompt
+        
+        // --- 1. DATA (ฐานข้อมูล) ---
+
+        /**
+         * ฐานข้อมูลตัวละคร
+         * image: อัปเดตเป็น Array of Strings (Base64) สำหรับ Gallery
+         * team_logo: Base64 String สำหรับโลโก้ทีม
+         */
+        const initialCharacterData = [
+            // {
+            //     id: 1,
+            //     image: ['data:image/png;base64,...', 'data:image/png;base64,...'], // เป็น Array
+            //     team_logo: 'data:image/png;base64,...', // เพิ่ม Team Logo
+            //     number: 8,
+            //     name_th: 'ฟ้าใส',
+            //     name_en: 'Fahsai',
+            //     position_th: 'กองหน้า',
+            //     position_en: 'Striker',
+            //     team_th: 'ทีมดราก้อน', 
+            //     team_en: 'Dragon Team', 
+            //     ability_th: 'พลังเตะสายฟ้า',
+            //     ability_en: 'Lightning Kick',
+            //     personal_info_th: 'เกิด: 2005\nส่วนสูง: 175 ซม.',
+            //     personal_info_en: 'Born: 2005\nHeight: 175 cm',
+            // },
+        ];
+        
+        // --- DATA PERSISTENCE (localStorage) ---
+        // โหลดข้อมูลจาก localStorage หรือใช้ข้อมูลเริ่มต้น (ที่ตอนนี้ว่าง)
+        let characterData = JSON.parse(localStorage.getItem('projectz_characters')) || initialCharacterData;
+        
+        // โหลดข้อมูลเนื้อเรื่อง (Storyline Data)
+        let storyData = JSON.parse(localStorage.getItem('projectz_story')) || {
+            th: 'เนื้อเรื่องย่อ: นี่คืองานเขียนที่อธิบายถึงโลกของฟุตบอลในตำนานที่เรียกว่า "กองหน้าหมายเลข 8" ที่ซึ่งนักเตะทุกคนมีความสามารถพิเศษที่เหนือมนุษย์ การแข่งขันไม่ใช่เพียงการทำประตู แต่เป็นการปะทะของพลังเหนือธรรมชาติ',
+            en: 'Storyline: This is a brief description of the legendary football world called "Striker 8," where every player possesses superhuman special abilities. The game is not just about scoring goals, but a clash of supernatural powers.',
+        };
+
+
+        /**
+         * ฟังก์ชันสำหรับบันทึกข้อมูลลง localStorage
+         */
+        function saveData() {
+            localStorage.setItem('projectz_characters', JSON.stringify(characterData));
+            localStorage.setItem('projectz_story', JSON.stringify(storyData));
+        }
+
+        /**
+         * Helper: แยกข้อมูลรวมออกเป็น Name, Position, Ability, PersonalInfo
+         * @param {string} infoText - ข้อความจาก General Info (แต่ละบรรทัดคือข้อมูล 1 ช่อง)
+         * @returns {object} {name, position, ability, personal_info}
+         */
+        function parseGeneralInfo(infoText) {
+            const lines = infoText.split('\n').map(line => line.trim());
+            return {
+                name: lines[0] || '',
+                position: lines[1] || '',
+                ability: lines[2] || '',
+                personal_info: lines.slice(3).join('\n').trim() || ''
+            };
+        }
+
+        /**
+         * Helper: รวม Name, Position, Ability, PersonalInfo เข้าเป็นข้อความเดียวสำหรับ Textarea
+         * @param {object} char - Object ตัวละคร
+         * @param {'th'|'en'} lang - ภาษา
+         * @returns {string} ข้อความรวม
+         */
+        function combineGeneralInfo(char, lang) {
+            const name = char[`name_${lang}`] || '';
+            const position = char[`position_${lang}`] || '';
+            const ability = char[`ability_${lang}`] || '';
+            const personalInfo = char[`personal_info_${lang}`] || '';
+            
+            // ใช้โครงสร้าง 4 บรรทัดหลัก + บรรทัดต่อไปเป็น personal info
+            return [name, position, ability, personalInfo].join('\n');
+        }
+
+
+        /**
+         * คลังคำแปลสำหรับสลับภาษา
+         */
+        const translations = {
+            th: {
+                appName: "กองหน้าหมายเลข 8",
+                navHome: "หน้าหลัก",
+                navCharacters: "ตัวละคร",
+                navStory: "เนื้อเรื่อง",
+                navAddCharacter: "เพิ่มตัวละคร",
+                langToggle: "EN",
+                homeTitle: "ยินดีต้อนรับสู่โลกแห่ง กองหน้าหมายเลข 8",
+                homeIntro: "โลกที่ฟุตบอลไม่ใช่แค่เกม แต่คือการต่อสู้ด้วยพลังพิเศษอันเร่าร้อน! ติดตามการเดินทางของเหล่าหนุ่มน้อยผู้มุ่งมั่นสู่จุดสูงสุดของวงการฟุตบอล",
+                homeButton: "ดูตัวละครทั้งหมด",
+                listTitle: "รายชื่อตัวละคร",
+                searchPlaceholder: "ค้นหาชื่อตัวละคร...",
+                detailTitle: "รายละเอียดตัวละคร",
+                backButton: "ย้อนกลับไปหน้ารายชื่อ",
+                share: "แชร์",
+                shareFacebook: "แชร์ไป Facebook",
+                shareTwitter: "แชร์ไป Twitter",
+                shareLine: "ส่งใน LINE",
+                fieldNumber: "หมายเลขเสื้อ",
+                fieldPosition: "ตำแหน่ง",
+                fieldAbility: "พลังพิเศษ",
+                fieldPersonalInfo: "ข้อมูลส่วนตัว",
+                fieldTeam: "ทีม", 
+                addCharacterTitle: "เพิ่มตัวละครใหม่",
+                addCharacterButton: "เพิ่มตัวละครใหม่",
+                editCharacterTitle: "แก้ไขตัวละคร",
+                editButton: "แก้ไข",
+                labelImageFile: "อัปโหลดรูปตัวละคร (PNG หลายรูปได้)",
+                labelImageFileEdit: "อัปโหลดรูปตัวละครใหม่ (PNG หลายรูปได้)",
+                labelTeamLogo: "อัปโหลดโลโก้ทีม (PNG 1 รูป) (ไม่บังคับ)", // UPDATED TEXT
+                labelTeamLogoEdit: "อัปโหลดโลโก้ทีมใหม่ (PNG 1 รูป) (ไม่บังคับ)", // UPDATED TEXT
+                labelNumber: "หมายเลขเสื้อ",
+                labelGeneralInfoTH: "ข้อมูลรวม (ไทย)",
+                labelGeneralInfoEN: "ข้อมูลรวม (อังกฤษ)",
+                labelTeamTH: "ทีม (ไทย)", 
+                labelTeamEN: "Team (EN)", 
+                infoFormatTH: "กรอกข้อมูลเรียงตามลำดับ:\n1. ชื่อตัวละคร\n2. ตำแหน่ง\n3. พลังพิเศษ\n4. ข้อมูลส่วนตัว",
+                infoFormatEN: "Enter info in order:\n1. Character Name\n2. Position\n3. Special Ability\n4. Personal Info (Bio)",
+                saveButton: "บันทึกตัวละคร",
+                saveChangesButton: "บันทึกการเปลี่ยนแปลง",
+                saveSuccess: "บันทึกตัวละครเรียบร้อยแล้ว!",
+                updateSuccess: "อัปเดตข้อมูลเรียบร้อยแล้ว!",
+                manualSave: "บันทึกข้อมูล",
+                saveManualSuccess: "ข้อมูลถูกบันทึกในเบราว์เซอร์แล้ว",
+                formErrorFile: "กรุณาอัปโหลดรูปภาพตัวละคร (PNG)",
+                formErrorTeamLogo: "กรุณาอัปโหลดโลโก้ทีม (PNG)", // Keeping error for consistency if file is present but wrong type
+                // Auth Modal Text
+                authTitle: "ใส่รหัสผ่านผู้ดูแลระบบ",
+                authIntro: "กรุณาใส่รหัสผ่านเพื่อเข้าถึงการจัดการข้อมูล",
+                authPlaceholder: "รหัสผ่าน",
+                authCancel: "ยกเลิก",
+                authSubmit: "ยืนยัน",
+                authError: "รหัสผ่านไม่ถูกต้อง!",
+                // Team List
+                selectTeamTitle: 'เลือกทีมเพื่อดูรายชื่อตัวละคร',
+                viewCharacters: 'ดูตัวละครในทีมนี้',
+                noTeamData: 'ยังไม่มีข้อมูลทีม',
+                backToTeams: 'กลับไปเลือกทีม',
+                charInTeamTitle: (team) => `ตัวละครทีม: ${team}`,
+                charInTeamSubtitle: 'คลิกที่การ์ดเพื่อดูรายละเอียด',
+                noCharInTeam: 'ไม่พบตัวละครในทีมนี้',
+                // Story Page
+                storyTitle: 'ข้อมูลเนื้อเรื่องหลัก',
+                editStoryButton: 'แก้ไขเนื้อเรื่อง',
+                storySaveSuccess: 'บันทึกเนื้อเรื่องหลักเรียบร้อยแล้ว!',
+                storyEditTitle: 'แก้ไขเนื้อเรื่องหลัก',
+                storyLabelTH: 'เนื้อเรื่อง (ไทย)',
+                storyLabelEN: 'Storyline (EN)',
+
+
+                seoHomeTitle: "กองหน้าหมายเลข 8 | ฐานข้อมูลตัวละครฟุตบอล",
+                seoHomeDesc: "ฐานข้อมูลตัวละครจากการ์ตูนฟุตบอล กองหน้าหมายเลข 8 - มารู้จักกับนักเตะ พลังพิเศษ และเรื่องราวของพวกเขา",
+                seoListTitle: "รายชื่อตัวละคร | กองหน้าหมายเลข 8",
+                seoListDesc: "พบกับตัวละครทั้งหมดจาก กองหน้าหมายเลข 8 พร้อมหมายเลข, ตำแหน่ง, และทีม",
+                seoStoryTitle: "เนื้อเรื่องหลัก | กองหน้าหมายเลข 8",
+                seoStoryDesc: (story) => `เนื้อเรื่องย่อ: ${story ? story.substring(0, 150) + (story.length > 150 ? '...' : '') : 'เนื้อเรื่องหลักของ กองหน้าหมายเลข 8'}`,
+                seoDetailTitle: (name) => `${name} | กองหน้าหมายเลข 8`,
+                seoDetailDesc: (name, ability) => `ข้อมูลของ ${name}: ${ability ? ability.substring(0, 150) + (ability.length > 150 ? '...' : '') : 'นักฟุตบอลจากกองหน้าหมายเลข 8'}`,
+            },
+            en: {
+                appName: "Striker 8",
+                navHome: "Home",
+                navCharacters: "Characters",
+                navStory: "Storyline",
+                navAddCharacter: "Add Character",
+                langToggle: "ไทย",
+                homeTitle: "Welcome to the World of Striker 8",
+                homeIntro: "A world where football is not just a game, but a battle with fiery special powers! Follow the journey of young players aiming for the top.",
+                homeButton: "View All Characters",
+                listTitle: "Character List",
+                searchPlaceholder: "Search character name...",
+                detailTitle: "Character Detail",
+                backButton: "Back to List",
+                share: "Share",
+                shareFacebook: "Share on Facebook",
+                shareTwitter: "Share on Twitter",
+                shareLine: "Send via LINE",
+                fieldNumber: "Jersey Number",
+                fieldPosition: "Position",
+                fieldAbility: "Special Ability",
+                fieldPersonalInfo: "Personal Info",
+                fieldTeam: "Team", 
+                addCharacterTitle: "Add New Character",
+                addCharacterButton: "Add New Character",
+                editCharacterTitle: "Edit Character",
+                editButton: "Edit",
+                labelImageFile: "Upload Character Images (Multiple PNGs allowed)",
+                labelImageFileEdit: "Upload New Character Images (Multiple PNGs allowed)",
+                labelTeamLogo: "Upload Team Logo (1 PNG file) (Optional)", // UPDATED TEXT
+                labelTeamLogoEdit: "Upload New Team Logo (1 PNG file) (Optional)", // UPDATED TEXT
+                labelNumber: "Jersey Number",
+                labelGeneralInfoTH: "General Info (TH)",
+                labelGeneralInfoEN: "General Info (EN)",
+                labelTeamTH: "ทีม (ไทย)", 
+                labelTeamEN: "Team (EN)", 
+                infoFormatTH: "Enter info in order:\n1. Character Name\n2. Position\n3. Special Ability\n4. Personal Info (Bio)",
+                infoFormatEN: "Enter info in order:\n1. Character Name\n2. Position\n3. Special Ability\n4. Personal Info (Bio)",
+                saveButton: "Save Character",
+                saveChangesButton: "Save Changes",
+                saveSuccess: "Character saved successfully!",
+                updateSuccess: "Character updated successfully!",
+                manualSave: "Save Data",
+                saveManualSuccess: "Data saved to browser storage",
+                formErrorFile: "Please upload character images (PNGs).",
+                formErrorTeamLogo: "Please upload a team logo (PNG).",
+                // Auth Modal Text
+                authTitle: "Enter Admin Password",
+                authIntro: "Please enter the password to access data management.",
+                authPlaceholder: "Password",
+                authCancel: "Cancel",
+                authSubmit: "Submit",
+                authError: "Incorrect Password!",
+                // Team List
+                selectTeamTitle: 'Select a Team to View Characters',
+                viewCharacters: 'View characters in this team',
+                noTeamData: 'No team data available.',
+                backToTeams: 'Back to Teams',
+                charInTeamTitle: (team) => `Characters in Team: ${team}`,
+                charInTeamSubtitle: 'Click a card to view details.',
+                noCharInTeam: 'No characters found in this team.',
+                // Story Page
+                storyTitle: 'Main Storyline Data',
+                editStoryButton: 'Edit Storyline',
+                storySaveSuccess: 'Main storyline updated successfully!',
+                storyEditTitle: 'Edit Main Storyline',
+                storyLabelTH: 'เนื้อเรื่อง (ไทย)',
+                storyLabelEN: 'Storyline (EN)',
+
+
+                seoHomeTitle: "Striker 8 | Football Character Database",
+                seoHomeDesc: "The character database from the football cartoon Striker 8. Get to know the players, their special abilities, and their stories.",
+                seoListTitle: "Character List | Striker 8",
+                seoListDesc: "Meet all the characters from Striker 8 with their numbers, positions, and teams.",
+                seoStoryTitle: "Storyline | Striker 8",
+                seoStoryDesc: (story) => `Synopsis: ${story ? story.substring(0, 150) + (story.length > 150 ? '...' : '') : 'The main storyline for Striker 8'}`,
+                seoDetailTitle: (name) => `${name} | Striker 8`,
+                seoDetailDesc: (name, ability) => `Profile of ${name}: ${ability ? ability.substring(0, 150) + (ability.length > 150 ? '...' : '') : 'A footballer from Striker 8'}`,
+            }
+        };
+
+        // --- 2. STATE (สถานะของแอป) ---
+        
+        const appState = {
+            // 'th' หรือ 'en'
+            lang: localStorage.getItem('projectz_lang') || 'th',
+            // 'home', 'list', 'detail', 'add', 'edit', 'story', 'edit-story'
+            currentPage: 'home',
+            // ID ของตัวละครที่กำลังดู
+            currentCharacterId: null,
+            // คำค้นหา
+            searchTerm: '',
+            // ทีมที่ถูกเลือกเพื่อแสดงตัวละคร (เก็บ Object {th, en} ของทีม)
+            selectedTeam: null,
+            // สถานะ Gallery สำหรับหน้า Detail
+            currentGalleryIndex: 0 
+        };
+
+        // --- 3. HELPER FUNCTIONS (ฟังก์ชันช่วย) ---
+
+        /**
+         * ฟังก์ชันสำหรับดึงคำแปล
+         * @param {string} key - Key ของคำแปลใน object 'translations'
+         */
+        function t(key, ...args) {
+            const translation = translations[appState.lang][key];
+            if (typeof translation === 'function') {
+                return translation(...args);
+            }
+            return translation || key;
+        }
+
+        /**
+         * ฟังก์ชันสำหรับดึงรายชื่อทีมที่ไม่ซ้ำกัน พร้อมโลโก้
+         */
+        function getUniqueTeams() {
+            const teams = new Map();
+            characterData.forEach(char => {
+                const key = (char.team_en && char.team_en.trim()) ? char.team_en.trim() : (char.team_th || '').trim();
+                
+                if (key) {
+                    // เก็บชื่อทีมและโลโก้ (ใช้โลโก้ของตัวละครแรกที่เจอในทีมนั้นๆ)
+                    if (!teams.has(key)) {
+                        teams.set(key, {
+                            th: char.team_th || '',
+                            en: char.team_en || '',
+                            logo: char.team_logo || null
+                        });
+                    }
+                }
+            });
+            // กรองทีมที่ไม่มีชื่อออก
+            return Array.from(teams.values()).filter(team => team.th || team.en);
+        }
+
+        /**
+         * ฟังก์ชันอัปเดต Meta Tags เพื่อ SEO
+         */
+        function updateMetaTags() {
+            let title, description;
+            const lang = appState.lang;
+
+            switch(appState.currentPage) {
+                case 'list':
+                    title = t('seoListTitle');
+                    description = t('seoListDesc');
+                    break;
+                case 'detail':
+                    const char = characterData.find(c => c.id === appState.currentCharacterId);
+                    if (char) {
+                        const name = lang === 'th' ? char.name_th : char.name_en;
+                        const ability = lang === 'th' ? char.ability_th : char.ability_en;
+                        title = t('seoDetailTitle', name);
+                        description = t('seoDetailDesc', name, ability);
+                    }
+                    break;
+                case 'story':
+                case 'edit-story':
+                    const storyText = lang === 'th' ? storyData.th : storyData.en;
+                    title = t('seoStoryTitle');
+                    description = t('seoStoryDesc', storyText);
+                    break;
+                case 'add':
+                    title = t('addCharacterTitle');
+                    description = t('seoHomeDesc'); // ใช้คำอธิบายกลางๆ
+                    break;
+                case 'edit':
+                    title = t('editCharacterTitle');
+                    description = t('seoHomeDesc'); // ใช้คำอธิบายกลางๆ
+                    break;
+                default: // 'home'
+                    title = t('seoHomeTitle');
+                    description = t('seoHomeDesc');
+            }
+
+            document.title = title;
+            document.querySelector('meta[name="description"]').setAttribute('content', description);
+            document.querySelector('html').setAttribute('lang', lang);
+            
+            // อัปเดต Open Graph (OG) tags
+            document.querySelector('meta[property="og:title"]').setAttribute('content', title);
+            document.querySelector('meta[property="og:description"]').setAttribute('content', description);
+        }
+        
+        /**
+         * แสดงข้อความแจ้งเตือนชั่วคราว (เช่น บันทึกสำเร็จ)
+         * @param {string} message - ข้อความ
+         * @param {string} color - สี ('blue' สำหรับสำเร็จ, 'red' สำหรับผิดพลาด)
+         */
+        function showTempMessage(message, color = 'blue') {
+            const messageContainer = document.getElementById('global-message');
+            if (!messageContainer) return;
+
+            messageContainer.textContent = message;
+            // ตั้งค่า class สำหรับแสดงข้อความและกำหนดสี
+            messageContainer.className = `fixed top-20 left-1/2 -translate-x-1/2 py-3 px-6 rounded-lg shadow-xl z-[100] transition-opacity duration-300 text-white font-semibold ${color === 'blue' ? 'bg-blue-600' : 'bg-red-600'} opacity-100`;
+
+            // ตั้งเวลาซ่อนข้อความ
+            clearTimeout(window.messageTimeout);
+            window.messageTimeout = setTimeout(() => {
+                messageContainer.classList.remove('opacity-100');
+                messageContainer.classList.add('opacity-0');
+            }, 3000);
+        }
+
+        /**
+         * แสดงหน้าต่างรหัสผ่านและรอผล
+         * @returns {Promise<boolean>} - true ถ้าใส่รหัสผ่านถูกต้อง
+         */
+        function showPasswordPrompt() {
+            const modal = document.getElementById('auth-modal');
+            const input = document.getElementById('auth-password');
+            const submitBtn = document.getElementById('auth-submit');
+            const cancelBtn = document.getElementById('auth-cancel');
+
+            // อัปเดตข้อความตามภาษา
+            document.querySelector('.auth-title').textContent = t('authTitle');
+            document.querySelector('.auth-intro').textContent = t('authIntro');
+            input.placeholder = t('authPlaceholder');
+            cancelBtn.textContent = t('authCancel');
+            submitBtn.textContent = t('authSubmit');
+
+
+            return new Promise(resolve => {
+                authResolve = resolve;
+                
+                // Reset state & show
+                input.value = '';
+                input.focus();
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modal.classList.add('opacity-100');
+                    document.querySelector('#auth-modal > div').classList.remove('translate-y-[-10px]');
+                }, 10);
+
+
+                // Handlers
+                const handleSubmit = () => {
+                    if (input.value === ADMIN_PASSWORD) {
+                        modal.classList.remove('opacity-100');
+                        document.querySelector('#auth-modal > div').classList.add('translate-y-[-10px]');
+                        setTimeout(() => modal.classList.add('hidden'), 300);
+                        resolve(true);
+                    } else {
+                        input.value = '';
+                        input.placeholder = t('authError');
+                        input.classList.add('ring-2', 'ring-red-500');
+                        setTimeout(() => {
+                            input.placeholder = t('authPlaceholder');
+                            input.classList.remove('ring-2', 'ring-red-500');
+                        }, 1000);
+                    }
+                };
+
+                const handleCancel = () => {
+                    modal.classList.remove('opacity-100');
+                    document.querySelector('#auth-modal > div').classList.add('translate-y-[-10px]');
+                    setTimeout(() => modal.classList.add('hidden'), 300);
+                    resolve(false);
+                };
+                
+                // Attach listeners
+                submitBtn.onclick = handleSubmit;
+                cancelBtn.onclick = handleCancel;
+                input.onkeypress = (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleSubmit();
+                    }
+                };
+            });
+        }
+
+        // --- 4. RENDER FUNCTIONS (ฟังก์ชันสร้าง UI) ---
+
+        /**
+         * สร้าง Header
+         */
+        function renderHeader() {
+            return `
+                <header class="flex justify-between items-center bg-white p-4 rounded-lg shadow-md mb-6 sticky top-4 z-50">
+                    <a href="#home" class="text-2xl md:text-3xl font-bold text-blue-700 hover:text-blue-800 transition-colors">
+                        ${t('appName')}
+                    </a>
+                    <nav class="flex items-center gap-3 md:gap-5">
+                        <a href="#home" class="text-sm md:text-base font-semibold ${appState.currentPage === 'home' ? 'text-blue-700' : 'text-gray-600'} hover:text-blue-700 transition-colors">${t('navHome')}</a>
+                        <a href="#list" class="text-sm md:text-base font-semibold ${appState.currentPage === 'list' ? 'text-blue-700' : 'text-gray-600'} hover:text-blue-700 transition-colors">${t('navCharacters')}</a>
+                        <a href="#story" class="text-sm md:text-base font-semibold ${appState.currentPage === 'story' || appState.currentPage === 'edit-story' ? 'text-blue-700' : 'text-gray-600'} hover:text-blue-700 transition-colors">${t('navStory')}</a>
+                        <a href="#add" id="nav-add" class="text-sm md:text-base font-semibold ${appState.currentPage === 'add' ? 'text-blue-700' : 'text-gray-600'} hover:text-blue-700 transition-colors">${t('navAddCharacter')}</a>
+                        
+                        <!-- Manual Save Button -->
+                        <button id="manual-save" class="bg-gray-600 text-white text-sm px-3 py-1 md:px-4 md:py-2 rounded-lg font-semibold hover:bg-gray-700 transition-colors shadow-sm">
+                            ${t('manualSave')}
+                        </button>
+
+                        <button id="lang-toggle" class="bg-blue-600 text-white text-sm px-3 py-1 md:px-4 md:py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-sm">
+                            ${t('langToggle')}
+                        </button>
+                    </nav>
+                </header>
+            `;
+        }
+
+        /**
+         * สร้างหน้า Home
+         */
+        function renderHome() {
+            return `
+                <div class="text-center bg-white rounded-lg shadow-lg p-8 md:p-16" style="
+                    background-image: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)), url('https://placehold.co/1000x400/3b82f6/ffffff?text=Striker+8+Football');
+                    background-size: cover;
+                    background-position: center;
+                ">
+                    <h1 class="text-3xl md:text-5xl font-bold text-blue-800 mb-4">${t('homeTitle')}</h1>
+                    <p class="text-lg md:text-xl text-gray-700 max-w-2xl mx-auto mb-10">
+                        ${t('homeIntro')}
+                    </p>
+                    <a href="#list" class="inline-block bg-blue-600 text-white px-8 py-3 rounded-full text-lg font-semibold hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 shadow-lg">
+                        ${t('homeButton')}
+                    </a>
+                </div>
+            `;
+        }
+
+        /**
+         * แสดงหน้าเลือกทีม
+         */
+        function renderTeamSelection() {
+            const uniqueTeams = getUniqueTeams();
+            const teamsContent = uniqueTeams.map(team => {
+                const teamName = appState.lang === 'th' ? (team.th || team.en) : (team.en || team.th);
+                // ใช้โลโก้ทีม หรือ Placeholder ถ้าไม่มี
+                const logoSrc = team.logo || 'https://placehold.co/100x100/eeeeee/3b82f6?text=LOGO';
+
+                return `
+                    <button data-action="select-team" data-team-th="${team.th}" data-team-en="${team.en}" class="team-card block bg-white rounded-lg shadow-lg p-6 text-center transition-all duration-300 transform hover:scale-[1.03] hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-300 cursor-pointer">
+                        <img src="${logoSrc}" alt="Team Logo for ${teamName}" class="w-16 h-16 mx-auto mb-4 rounded-full object-cover border-2 border-blue-500" onerror="this.src='https://placehold.co/100x100/eeeeee/3b82f6?text=LOGO'">
+                        <h3 class="text-xl font-bold text-gray-800">${teamName || (appState.lang === 'th' ? 'ไม่มีชื่อทีม' : 'No Team Name')}</h3>
+                        <p class="text-sm text-gray-500 mt-1">${t('viewCharacters')}</p>
+                    </button>
+                `;
+            }).join('');
+
+            return `
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h2 class="text-3xl font-bold text-blue-800 mb-8">${t('selectTeamTitle')}</h2>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        ${teamsContent.length > 0 ? teamsContent : `<p class="col-span-full text-center text-gray-500">${t('noTeamData')}</p>`}
+                    </div>
+                </div>
+            `;
+        }
+
+        /**
+         * แสดงหน้ารายชื่อตัวละครที่ถูกกรองตามทีม
+         */
+        function renderFilteredCharacterList() {
+            // กรองตัวละครตามทีมที่เลือก
+            const teamFilter = appState.selectedTeam;
+            const filteredCharacters = characterData.filter(char => 
+                (char.team_th === teamFilter.th && teamFilter.th) || 
+                (char.team_en === teamFilter.en && teamFilter.en)
+            );
+
+            // กรองตัวละครตามคำค้นหา (ถ้ามี)
+            const searchTermLower = appState.searchTerm.toLowerCase();
+            const finalCharacters = filteredCharacters.filter(char => 
+                char.name_th.toLowerCase().includes(searchTermLower) ||
+                char.name_en.toLowerCase().includes(searchTermLower)
+            );
+
+            const teamNameDisplay = appState.lang === 'th' ? (teamFilter.th || teamFilter.en) : (teamFilter.en || teamFilter.th);
+            
+            const characterCards = finalCharacters.map(char => {
+                const name = appState.lang === 'th' ? char.name_th : char.name_en;
+                const position = appState.lang === 'th' ? char.position_th : char.position_en;
+                // ใช้รูปแรกใน Array หรือ Placeholder
+                const mainImage = Array.isArray(char.image) && char.image.length > 0 ? char.image[0] : 'https://placehold.co/600x600/cccccc/333333?text=Image+Error';
+                
+                return `
+                    <a href="#detail/${char.id}" class="block bg-white rounded-lg shadow-lg overflow-hidden transition-all duration-300 transform hover:scale-[1.03] hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-300">
+                        <img src="${mainImage}" alt="${name}" class="w-full h-56 object-cover" onerror="this.src='https://placehold.co/600x600/cccccc/333333?text=Image+Error'">
+                        <div class="p-5">
+                            <h3 class="text-2xl font-bold text-blue-800 mb-2">${name}</h3>
+                            <div class="text-sm text-gray-600 space-y-1">
+                                <p><span class="font-semibold">${t('fieldNumber')}:</span> ${char.number}</p>
+                                <p><span class="font-semibold">${t('fieldPosition')}:</span> ${position || '-'}</p>
+                                <p><span class="font-semibold">${t('fieldTeam')}:</span> ${teamNameDisplay || '-'}</p>
+                            </div>
+                        </div>
+                    </a>
+                `;
+            }).join('');
+
+            return `
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <button id="back-to-teams" class="inline-block bg-gray-200 text-gray-800 px-5 py-2 rounded-full text-sm font-semibold hover:bg-gray-300 transition-colors mb-6">
+                        &larr; ${t('backToTeams')}
+                    </button>
+                    <h2 class="text-3xl font-bold text-blue-800 mb-2">${t('charInTeamTitle', teamNameDisplay)}</h2>
+                    <p class="text-gray-600 mb-6">${t('charInTeamSubtitle')}</p>
+                    
+                    <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                        <input 
+                            type="search" 
+                            id="search-input" 
+                            placeholder="${t('searchPlaceholder')}" 
+                            value="${appState.searchTerm}"
+                            class="w-full md:w-1/2 p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                        <a href="#add" id="add-from-list" class="w-full md:w-auto text-center bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-sm">
+                            ${t('addCharacterButton')}
+                        </a>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        ${characterCards.length > 0 ? characterCards : `<p class="col-span-full text-center text-gray-500">${t('noCharInTeam')}</p>`}
+                    </div>
+                </div>
+            `;
+        }
+
+        /**
+         * สร้างหน้า Character List (จัดการการแสดงผลตาม selectedTeam)
+         */
+        function renderList() {
+            // 1. ถ้ายังไม่ได้เลือกทีม ให้แสดงหน้าเลือกทีม
+            if (!appState.selectedTeam) {
+                return renderTeamSelection();
+            }
+
+            // 2. ถ้าเลือกทีมแล้ว ให้แสดงรายชื่อตัวละครของทีมนั้น
+            return renderFilteredCharacterList();
+        }
+
+        /**
+         * สร้าง Gallery สไลด์โชว์
+         * @param {Array<string>} images - Array ของ Base64 images
+         * @param {number} charId - ID ตัวละคร (ใช้สำหรับตั้ง ID ของ DOM element)
+         */
+        function renderGallery(images, charId) {
+            if (!images || images.length === 0) {
+                return `<img src="https://placehold.co/600x600/cccccc/333333?text=No+Images" alt="No Images" class="w-full rounded-lg shadow-md aspect-square object-cover">`;
+            }
+
+            const totalImages = images.length;
+            const currentIdx = appState.currentGalleryIndex;
+            const galleryId = `gallery-${charId}`;
+
+            const imagesHtml = images.map((src, index) => `
+                <img src="${src}" alt="Character Image ${index + 1}" class="aspect-square" onerror="this.src='https://placehold.co/600x600/cccccc/333333?text=Image+Error'">
+            `).join('');
+
+            const indicators = images.map((_, index) => `
+                <button data-gallery-action="go" data-index="${index}" class="w-3 h-3 mx-1 rounded-full ${index === currentIdx ? 'bg-blue-600' : 'bg-gray-400'} hover:bg-blue-500 transition-colors"></button>
+            `).join('');
+
+            return `
+                <div id="${galleryId}" class="gallery-container">
+                    <div class="gallery-inner" style="width: ${totalImages * 100}%; transform: translateX(-${currentIdx * (100 / totalImages)}%);">
+                        ${imagesHtml}
+                    </div>
+                    
+                    ${totalImages > 1 ? `
+                        <div class="gallery-nav">
+                            <button data-gallery-action="prev" data-id="${charId}" class="left-2">&larr;</button>
+                            <button data-gallery-action="next" data-id="${charId}" class="right-2">&rarr;</button>
+                        </div>
+                        <div class="flex justify-center mt-3">
+                            ${indicators}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+        
+        /**
+         * สร้างหน้า Character Detail
+         */
+        function renderDetail() {
+            const char = characterData.find(c => c.id === appState.currentCharacterId);
+
+            if (!char) {
+                return `
+                    <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+                        <h2 class="text-2xl font-bold text-red-600 mb-4">${appState.lang === 'th' ? 'ไม่พบตัวละคร' : 'Character Not Found'}</h2>
+                        <a href="#list" class="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                            ${t('backButton')}
+                        </a>
+                    </div>
+                `;
+            }
+
+            const name = appState.lang === 'th' ? char.name_th : char.name_en;
+            const position = appState.lang === 'th' ? char.position_th : char.position_en;
+            const ability = appState.lang === 'th' ? char.ability_th : char.ability_en;
+            const personalInfo = appState.lang === 'th' ? char.personal_info_th : char.personal_info_en;
+            const team = appState.lang === 'th' ? char.team_th : char.team_en; // ดึงข้อมูลทีม
+            
+            const shareUrl = window.location.href;
+            const shareText = encodeURIComponent(appState.lang === 'th' ? `ดูข้อมูลของ ${name} จาก กองหน้าหมายเลข 8!` : `Check out ${name} from Striker 8!`);
+
+            // ฟังก์ชันสำหรับ Share
+            const shareLinks = `
+                <div class="flex flex-wrap gap-2 mt-4">
+                    <button data-share="facebook" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors min-w-[120px]">${t('shareFacebook')}</button>
+                    <button data-share="twitter" class="flex-1 bg-sky-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-sky-600 transition-colors min-w-[120px]">${t('shareTwitter')}</button>
+                    <button data-share="line" class="flex-1 bg-lime-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-lime-600 transition-colors min-w-[120px]">${t('shareLine')}</button>
+                </div>
+            `;
+            
+            // ฟังก์ชัน render field
+            const renderField = (label, value) => `
+                <div class="mt-4">
+                    <span class="block text-sm text-gray-500 uppercase font-semibold">${label}</span>
+                    <span class="text-lg text-gray-900 whitespace-pre-wrap">${value || '-'}</span>
+                </div>
+            `;
+            
+            // ใช้ค่า name, position, ability, personalInfo ที่แยกออกมาแล้วมาแสดงผล
+
+            return `
+                <div class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+                    <a href="#list" class="inline-block bg-gray-200 text-gray-800 px-5 py-2 rounded-full text-sm font-semibold hover:bg-gray-300 transition-colors mb-6">
+                        &larr; ${t('backButton')}
+                    </a>
+                    
+                    <div class="md:flex md:gap-8">
+                        <!-- Image Gallery Column -->
+                        <div class="md:w-1/3 flex-shrink-0">
+                            ${renderGallery(char.image, char.id)}
+                        </div>
+                        
+                        <!-- Info Column -->
+                        <div class="md:w-2/3 mt-6 md:mt-0">
+                            <h2 class="text-4xl md:text-5xl font-bold text-blue-800">${name}</h2>
+                            
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6">
+                                ${renderField(t('fieldNumber'), char.number)}
+                                ${renderField(t('fieldPosition'), position)}
+                                ${renderField(t('fieldTeam'), team)}
+                            </div>
+                            
+                            ${renderField(t('fieldAbility'), ability)}
+                            ${renderField(t('fieldPersonalInfo'), personalInfo)}
+                            
+                            <hr class="my-6">
+                            
+                            <div class="flex flex-wrap gap-4 items-center">
+                                <h4 class="text-lg font-semibold">${t('share')}</h4>
+                                <button id="edit-char-btn" data-id="${char.id}" class="inline-block bg-yellow-500 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-yellow-600 transition-colors">
+                                    ${t('editButton')}
+                                </button>
+                            </div>
+                            <div class="share-buttons">
+                                ${shareLinks}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        /**
+         * สร้างหน้าแสดงเนื้อเรื่องหลัก
+         */
+        function renderStoryPage() {
+            const storyText = appState.lang === 'th' ? storyData.th : storyData.en;
+            return `
+                <div class="bg-white rounded-lg shadow-lg p-6 md:p-8 max-w-3xl mx-auto">
+                    <h2 class="text-3xl font-bold text-blue-800 mb-6">${t('storyTitle')}</h2>
+                    <div class="flex justify-end mb-6">
+                        <a href="#edit-story" id="edit-story-btn" class="inline-block bg-yellow-500 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-yellow-600 transition-colors">
+                            ${t('editStoryButton')}
+                        </a>
+                    </div>
+                    <div class="prose max-w-none text-gray-700 whitespace-pre-wrap leading-relaxed">
+                        ${storyText}
+                    </div>
+                </div>
+            `;
+        }
+        
+        /**
+         * สร้างหน้าแก้ไขเนื้อเรื่องหลัก
+         */
+        function renderEditStoryForm() {
+            return `
+                <div class="bg-white rounded-lg shadow-lg p-6 md:p-8 max-w-3xl mx-auto">
+                    <h2 class="text-3xl font-bold text-blue-800 mb-6">${t('storyEditTitle')}</h2>
+                    <form id="edit-story-form">
+                        <div class="mb-4">
+                            <label for="story-th" class="block text-sm font-semibold text-gray-700 mb-1">${t('storyLabelTH')}</label>
+                            <textarea id="story-th" name="story-th" rows="15" class="w-full p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">${storyData.th}</textarea>
+                        </div>
+                        <div class="mb-4">
+                            <label for="story-en" class="block text-sm font-semibold text-gray-700 mb-1">${t('storyLabelEN')}</label>
+                            <textarea id="story-en" name="story-en" rows="15" class="w-full p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">${storyData.en}</textarea>
+                        </div>
+                        <button type="submit" class="w-full bg-blue-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors shadow-lg mt-6">
+                            ${t('saveChangesButton')}
+                        </button>
+                    </form>
+                </div>
+            `;
+        }
+
+        /**
+         * สร้างหน้าฟอร์มเพิ่ม หรือ แก้ไข ตัวละคร
+         * @param {'add' | 'edit'} mode - โหมดของฟอร์ม
+         */
+        function renderCharacterForm(mode) {
+            const isEdit = mode === 'edit';
+            let char = null;
+
+            if (isEdit) {
+                char = characterData.find(c => c.id === appState.currentCharacterId);
+                if (!char) {
+                     return `<p class="text-center text-red-600">Character not found.</p>`;
+                }
+            }
+
+            const title = isEdit ? t('editCharacterTitle') : t('addCharacterTitle');
+            const formId = isEdit ? 'edit-character-form' : 'add-character-form';
+            const buttonText = isEdit ? t('saveChangesButton') : t('saveButton');
+            
+            // Helper: สร้าง <input>
+            const renderInput = (id, labelKey, type = 'text', value = '', required = true, multiple = false) => {
+                const acceptAttr = type === 'file' ? 'accept="image/png"' : '';
+                const multipleAttr = multiple ? 'multiple' : '';
+                // NEW: ลบ required ออกสำหรับ Team Logo (labelKey === 'labelTeamLogo' || labelKey === 'labelTeamLogoEdit')
+                const isTeamLogoField = labelKey === 'labelTeamLogo' || labelKey === 'labelTeamLogoEdit';
+                const reqAttr = (required && !isTeamLogoField) ? 'required' : ''; 
+
+                return `
+                    <div class="mb-4">
+                        <label for="${id}" class="block text-sm font-semibold text-gray-700 mb-1">${t(labelKey)}</label>
+                        <input type="${type}" id="${id}" name="${id}" value="${value}" class="w-full p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200" ${acceptAttr} ${reqAttr} ${multipleAttr}>
+                    </div>
+                `;
+            };
+            
+            // Helper: สร้าง <textarea>
+            const renderTextArea = (id, labelKey, infoFormatKey, value = '', required = true) => {
+                const reqAttr = required ? 'required' : '';
+                return `
+                    <div class="mb-4">
+                        <label for="${id}" class="block text-sm font-semibold text-gray-700 mb-1">${t(labelKey)}</label>
+                        <textarea id="${id}" name="${id}" rows="8" class="w-full p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm" placeholder="${t(infoFormatKey)}" ${reqAttr}>${value}</textarea>
+                        <p class="text-xs text-gray-500 mt-1">${t(infoFormatKey)}</p>
+                    </div>
+                `;
+            };
+
+            // ดึงค่าสำหรับ pre-fill (ถ้ามี)
+            const val = (field, defaultValue = '') => (isEdit && char) ? (char[field] || defaultValue) : defaultValue;
+            
+            // ดึงค่า General Info สำหรับ Textarea
+            const infoTH = isEdit ? combineGeneralInfo(char, 'th') : '';
+            const infoEN = isEdit ? combineGeneralInfo(char, 'en') : '';
+
+            // แสดงรูปภาพตัวละครปัจจุบัน (ถ้ามี)
+            const currentImages = Array.isArray(val('image')) ? val('image') : [];
+            const currentImagesDisplay = currentImages.map((src, index) => `
+                <img src="${src}" alt="Current Image ${index+1}" class="w-16 h-16 object-cover rounded-lg mr-2 mb-2">
+            `).join('');
+
+            return `
+                <div class="bg-white rounded-lg shadow-lg p-6 md:p-8 max-w-3xl mx-auto">
+                    <h2 class="text-3xl font-bold text-blue-800 mb-6">${title}</h2>
+                    
+                    <form id="${formId}">
+                        <!-- รูปภาพตัวละคร (Gallery) -->
+                        <div class="mb-6">
+                            <h3 class="text-lg font-bold text-gray-800 mb-2">รูปภาพตัวละคร</h3>
+                            ${isEdit && currentImages.length > 0 ? `<div class="flex flex-wrap mb-4">${currentImagesDisplay}</div>` : ''}
+                            ${renderInput('form-image', isEdit ? 'labelImageFileEdit' : 'labelImageFile', 'file', '', !isEdit, true)}
+                        </div>
+
+                        <!-- โลโก้ทีม -->
+                        <div class="mb-6">
+                            <h3 class="text-lg font-bold text-gray-800 mb-2">โลโก้ทีม</h3>
+                            ${isEdit && val('team_logo') ? `<img src="${val('team_logo')}" alt="Current Team Logo" class="w-16 h-16 object-cover rounded-full mb-4 border-2 border-blue-500">` : ''}
+                            ${renderInput('form-team-logo', isEdit ? 'labelTeamLogoEdit' : 'labelTeamLogo', 'file', '', !isEdit, false)}
+                        </div>
+
+                        <!-- หมายเลขเสื้อ -->
+                        ${renderInput('form-number', 'labelNumber', 'number', val('number'), true)}
+
+                        <!-- ทีม -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            ${renderInput('form-team-th', 'labelTeamTH', 'text', val('team_th'), true)}
+                            ${renderInput('form-team-en', 'labelTeamEN', 'text', val('team_en'), true)}
+                        </div>
+
+                        <!-- ข้อมูลรวม (General Info) -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            ${renderTextArea('form-general-info-th', 'labelGeneralInfoTH', 'infoFormatTH', infoTH)}
+                            ${renderTextArea('form-general-info-en', 'labelGeneralInfoEN', 'infoFormatEN', infoEN)}
+                        </div>
+
+                        <button type="submit" class="w-full bg-blue-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors shadow-lg mt-6">
+                            ${buttonText}
+                        </button>
+                    </form>
+                </div>
+            `;
+        }
+
+        /**
+         * ฟังก์ชันหลักในการ Render แอป
+         */
+        function renderApp() {
+            const appElement = document.getElementById('app');
+            let pageContent = '';
+
+            // เลือกหน้าที่จะ Render
+            switch (appState.currentPage) {
+                case 'list':
+                    pageContent = renderList();
+                    break;
+                case 'detail':
+                    pageContent = renderDetail();
+                    break;
+                case 'story':
+                    pageContent = renderStoryPage();
+                    break;
+                case 'edit-story':
+                    pageContent = renderEditStoryForm();
+                    break;
+                case 'add':
+                    pageContent = renderCharacterForm('add');
+                    break;
+                case 'edit':
+                    pageContent = renderCharacterForm('edit');
+                    break;
+                case 'home':
+                default:
+                    pageContent = renderHome();
+            }
+
+            // ประกอบร่าง Header + Content
+            appElement.innerHTML = `
+                ${renderHeader()}
+                <!-- Global Message Container สำหรับแสดงข้อความแจ้งเตือน (Toast) -->
+                <div id="global-message" class="fixed top-20 left-1/2 -translate-x-1/2 opacity-0 transition-opacity duration-300 z-[100] pointer-events-none"></div>
+                <main>
+                    ${pageContent}
+                </main>
+            `;
+            
+            // อัปเดต SEO
+            updateMetaTags();
+        }
+
+        // --- 5. EVENT LISTENERS & ROUTER ---
+
+        /**
+         * จัดการการเปลี่ยนหน้า (Router)
+         */
+        async function handleRouteChange() {
+            if (isAuthenticating) return; // Prevent re-entry during auth process
+
+            const hash = window.location.hash;
+            let targetPage = 'home';
+            let targetCharId = null;
+
+            if (hash.startsWith('#detail/')) {
+                targetPage = 'detail';
+                targetCharId = parseInt(hash.split('/')[1]);
+                // เมื่อเข้าหน้ารายละเอียด ให้ reset gallery index
+                appState.currentGalleryIndex = 0;
+            } else if (hash === '#list') {
+                targetPage = 'list';
+            } else if (hash === '#story') {
+                targetPage = 'story';
+            } else if (hash === '#add') {
+                targetPage = 'add';
+            } else if (hash.startsWith('#edit/')) {
+                targetPage = 'edit';
+                targetCharId = parseInt(hash.split('/')[1]);
+            } else if (hash === '#edit-story') {
+                 targetPage = 'edit-story';
+            }
+
+            // Check for restricted pages
+            if (targetPage === 'add' || targetPage === 'edit' || targetPage === 'edit-story' || targetPage === 'manual-save') {
+                // If the app is already rendering a restricted page, no need to re-authenticate immediately
+                if (appState.currentPage !== targetPage) {
+                    isAuthenticating = true;
+                    const authenticated = await showPasswordPrompt();
+                    isAuthenticating = false;
+                    
+                    if (!authenticated) {
+                        // Not authorized, redirect to list
+                        window.location.hash = '#list';
+                        return; // Stop route change
+                    }
+                    // If authenticated, proceed to render the restricted page
+                }
+            }
+            
+            // Update state and render
+            appState.currentPage = targetPage;
+            appState.currentCharacterId = targetCharId;
+            
+            // Reset team selection/search based on page
+            if (appState.currentPage !== 'list') {
+                appState.selectedTeam = null;
+                appState.searchTerm = '';
+            } else if (appState.currentPage === 'list' && appState.selectedTeam === null) {
+                 // Clear search if we are back to team selection page
+                appState.searchTerm = '';
+            }
+
+            renderApp();
+            window.scrollTo(0, 0); // Scroll to top
+        }
+        
+        /**
+         * จัดการการคลิก (ต้องเป็น async function เพื่อรอรหัสผ่าน)
+         */
+        async function handleClick(e) {
+            // ปุ่มสลับภาษา
+            if (e.target.id === 'lang-toggle') {
+                appState.lang = appState.lang === 'th' ? 'en' : 'th';
+                localStorage.setItem('projectz_lang', appState.lang);
+                renderApp();
+                // If auth modal is open, re-render its text immediately
+                const modal = document.getElementById('auth-modal');
+                if(!modal.classList.contains('hidden')) {
+                    document.querySelector('.auth-title').textContent = t('authTitle');
+                    document.querySelector('.auth-intro').textContent = t('authIntro');
+                    document.getElementById('auth-password').placeholder = t('authPlaceholder');
+                    document.getElementById('auth-cancel').textContent = t('authCancel');
+                    document.getElementById('auth-submit').textContent = t('authSubmit');
+                }
+            }
+            
+            // ปุ่มบันทึกข้อมูลด้วยตนเอง (ต้องตรวจสอบรหัสผ่าน)
+            if (e.target.id === 'manual-save') {
+                isAuthenticating = true;
+                const authenticated = await showPasswordPrompt();
+                isAuthenticating = false;
+
+                if (authenticated) {
+                    saveData();
+                    showTempMessage(t('saveManualSuccess'), 'blue');
+                } else {
+                    showTempMessage(appState.lang === 'th' ? 'รหัสผ่านไม่ถูกต้อง! ไม่สามารถบันทึกได้' : 'Incorrect Password! Save aborted.', 'red');
+                }
+                return;
+            }
+            
+            // ปุ่มแก้ไขตัวละคร (ต้องตรวจสอบรหัสผ่าน)
+            if (e.target.id === 'edit-char-btn') {
+                e.preventDefault(); // ป้องกันการเปลี่ยน hash ทันที
+                const charId = e.target.dataset.id;
+                
+                isAuthenticating = true;
+                const authenticated = await showPasswordPrompt();
+                isAuthenticating = false;
+
+                if (authenticated) {
+                    window.location.hash = `#edit/${charId}`;
+                } else {
+                     showTempMessage(appState.lang === 'th' ? 'รหัสผ่านไม่ถูกต้อง! ไม่สามารถแก้ไขได้' : 'Incorrect Password! Edit aborted.', 'red');
+                }
+                return;
+            }
+            
+            // ปุ่มแก้ไขเนื้อเรื่อง (ต้องตรวจสอบรหัสผ่าน)
+            if (e.target.id === 'edit-story-btn') {
+                e.preventDefault(); 
+                
+                isAuthenticating = true;
+                const authenticated = await showPasswordPrompt();
+                isAuthenticating = false;
+
+                if (authenticated) {
+                    window.location.hash = `#edit-story`;
+                } else {
+                     showTempMessage(appState.lang === 'th' ? 'รหัสผ่านไม่ถูกต้อง! ไม่สามารถแก้ไขเนื้อเรื่องได้' : 'Incorrect Password! Edit aborted.', 'red');
+                }
+                return;
+            }
+
+            // --- Team Selection and Back Button ---
+
+            // ปุ่มกลับไปเลือกทีม
+            if (e.target.id === 'back-to-teams') {
+                appState.selectedTeam = null;
+                appState.searchTerm = '';
+                window.location.hash = '#list'; // Ensure hash updates
+                return;
+            }
+
+            // คลิกการ์ดทีม
+            const teamCard = e.target.closest('[data-action="select-team"]');
+            if (teamCard) {
+                // ดึงชื่อทีมทั้งสองภาษา
+                const teamTh = teamCard.dataset.teamTh;
+                const teamEn = teamCard.dataset.teamEn;
+                
+                appState.selectedTeam = { th: teamTh, en: teamEn };
+                appState.searchTerm = ''; // ล้างคำค้นหา
+                renderApp();
+                return;
+            }
+
+            // --- Gallery Navigation ---
+            const galleryAction = e.target.closest('[data-gallery-action]');
+            if (galleryAction) {
+                const action = galleryAction.dataset.galleryAction;
+                const char = characterData.find(c => c.id === appState.currentCharacterId);
+                const totalImages = char.image.length;
+
+                if (action === 'next') {
+                    appState.currentGalleryIndex = (appState.currentGalleryIndex + 1) % totalImages;
+                } else if (action === 'prev') {
+                    appState.currentGalleryIndex = (appState.currentGalleryIndex - 1 + totalImages) % totalImages;
+                } else if (action === 'go') {
+                    appState.currentGalleryIndex = parseInt(galleryAction.dataset.index);
+                }
+                // re-render detail page to update gallery
+                renderApp();
+                return;
+            }
+
+
+            // ปุ่มแชร์
+            const shareTarget = e.target.closest('[data-share]');
+            if (shareTarget) {
+                const platform = shareTarget.dataset.share;
+                const shareUrl = window.location.href;
+                const char = characterData.find(c => c.id === appState.currentCharacterId);
+                const name = appState.lang === 'th' ? char.name_th : char.name_en;
+                const shareText = encodeURIComponent(appState.lang === 'th' ? `ดูข้อมูลของ ${name} จาก กองหน้าหมายเลข 8!` : `Check out ${name} from Striker 8!`);
+                
+                let url;
+                switch (platform) {
+                    case 'facebook':
+                        url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+                        break;
+                    case 'twitter':
+                        url = `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${shareText}`;
+                        break;
+                    case 'line':
+                        url = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(shareUrl)}&text=${shareText}`;
+                        break;
+                }
+                
+                if (url) {
+                    window.open(url, '_blank', 'width=600,height=400');
+                }
+            }
+        }
+        
+        /**
+         * จัดการการพิมพ์ (สำหรับค้นหา)
+         */
+        function handleInput(e) {
+            if (e.target.id === 'search-input') {
+                appState.searchTerm = e.target.value;
+                // re-render list เพื่อกรองผล
+                renderApp();
+                // รักษา focus
+                document.getElementById('search-input')?.focus();
+            }
+        }
+
+        // --- 6. INITIALIZATION (การเริ่มต้น) ---
+
+        // ตั้งค่า event listeners
+        window.addEventListener('hashchange', handleRouteChange);
+        window.addEventListener('load', handleRouteChange); // สำหรับการโหลดหน้าครั้งแรก
+        document.getElementById('app').addEventListener('click', handleClick);
+        document.getElementById('app').addEventListener('input', handleInput);
+        
+        /**
+         * Helper: อ่านไฟล์เป็น Base64 Data URL
+         * @param {File|FileList} files - ไฟล์หรือรายการไฟล์
+         * @returns {Promise<string|string[]>} - Base64 string หรือ array of Base64 strings
+         */
+        function readFileAsDataURL(files) {
+            if (files instanceof File) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = error => reject(error);
+                    reader.readAsDataURL(files);
+                });
+            } else if (files instanceof FileList) {
+                const promises = Array.from(files).map(file => {
+                    return new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result);
+                        reader.onerror = error => reject(error);
+                        reader.readAsDataURL(file);
+                    });
+                });
+                return Promise.all(promises);
+            }
+        }
+
+        /**
+         * จัดการการ submit ฟอร์ม (ทั้ง Add, Edit, และ Story)
+         */
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            
+            if (e.target.id === 'add-character-form') {
+                await handleAddSubmit(e);
+            } else if (e.target.id === 'edit-character-form') {
+                await handleEditSubmit(e);
+            } else if (e.target.id === 'edit-story-form') {
+                 handleStoryEditSubmit(e);
+            }
+        }
+        
+        /**
+         * จัดการการ "เพิ่ม" ตัวละครใหม่
+         */
+        async function handleAddSubmit(e) {
+            
+            // 1. ตรวจสอบไฟล์ภาพตัวละคร (บังคับ)
+            const fileInput = document.getElementById('form-image');
+            const files = fileInput.files;
+            
+            if (files.length === 0 || Array.from(files).some(f => f.type !== 'image/png')) {
+                showTempMessage(t('formErrorFile'), 'red');
+                return;
+            }
+
+            // 2. จัดการไฟล์โลโก้ทีม (ไม่บังคับ)
+            const teamLogoInput = document.getElementById('form-team-logo');
+            const teamLogoFile = teamLogoInput.files[0];
+            let teamLogoUrl = null;
+
+            if (teamLogoFile) {
+                 if (teamLogoFile.type !== 'image/png') {
+                    showTempMessage(t('formErrorTeamLogo'), 'red');
+                    return;
+                }
+                try {
+                    teamLogoUrl = await readFileAsDataURL(teamLogoFile);
+                } catch (error) {
+                    console.error('Error reading team logo file:', error);
+                    showTempMessage('Error reading team logo file.', 'red');
+                    return;
+                }
+            }
+            
+            // 3. อ่านไฟล์ภาพตัวละคร (Async)
+            let imageArray;
+            try {
+                imageArray = await readFileAsDataURL(files);
+            } catch (error) {
+                console.error('Error reading file:', error);
+                showTempMessage('Error reading file.', 'red');
+                return;
+            }
+
+            // 4. แยกข้อมูลรวม
+            const infoTH = parseGeneralInfo(document.getElementById('form-general-info-th').value);
+            const infoEN = parseGeneralInfo(document.getElementById('form-general-info-en').value);
+
+            // 5. หา ID ใหม่
+            const allIds = characterData.map(c => c.id).filter(id => !isNaN(id));
+            const newId = allIds.length > 0 ? Math.max(...allIds) + 1 : 1;
+            
+            // 6. สร้าง Object ตัวละครใหม่
+            const newCharacter = {
+                id: newId,
+                image: imageArray, // Array of Base64
+                team_logo: teamLogoUrl, // Base64 String (หรือ null)
+                number: parseInt(document.getElementById('form-number').value) || 0,
+                team_th: document.getElementById('form-team-th').value, 
+                team_en: document.getElementById('form-team-en').value, 
+                // ข้อมูลที่ถูกแยก
+                name_th: infoTH.name,
+                position_th: infoTH.position,
+                ability_th: infoTH.ability,
+                personal_info_th: infoTH.personal_info,
+                name_en: infoEN.name,
+                position_en: infoEN.position,
+                ability_en: infoEN.ability,
+                personal_info_en: infoEN.personal_info,
+            };
+            
+            // เพิ่มตัวละครใหม่ลงในอาร์เรย์
+            characterData.push(newCharacter);
+            saveData();
+            
+            // แสดงข้อความสำเร็จ
+            showTempMessage(t('saveSuccess'), 'blue');
+            
+            // ล้างฟอร์ม
+            e.target.reset();
+            // ให้ไปที่หน้าทีมที่เพิ่ม
+            appState.selectedTeam = { th: newCharacter.team_th, en: newCharacter.team_en };
+            window.location.hash = '#list';
+        }
+
+        /**
+         * จัดการการ "แก้ไข" ตัวละคร
+         */
+        async function handleEditSubmit(e) {
+            
+            const charId = appState.currentCharacterId;
+            const charIndex = characterData.findIndex(c => c.id === charId);
+            if (charIndex === -1) {
+                showTempMessage('Error: Character not found.', 'red');
+                return;
+            }
+            
+            const existingChar = characterData[charIndex];
+            
+            // 1. จัดการรูปภาพตัวละคร (Gallery)
+            const fileInput = document.getElementById('form-image');
+            const files = fileInput.files;
+            let imageArray = existingChar.image; // ใช้รูปเดิมเป็น default
+
+            if (files.length > 0) {
+                // ถ้ามีไฟล์ใหม่, ตรวจสอบและอ่าน
+                if (Array.from(files).some(f => f.type !== 'image/png')) {
+                    showTempMessage(t('formErrorFile'), 'red');
+                    return;
+                }
+                try {
+                    imageArray = await readFileAsDataURL(files);
+                } catch (error) {
+                    console.error('Error reading files:', error);
+                    showTempMessage('Error reading files.', 'red');
+                    return;
+                }
+            }
+
+            // 2. จัดการรูปภาพโลโก้ทีม (ไม่บังคับ)
+            const teamLogoInput = document.getElementById('form-team-logo');
+            const teamLogoFile = teamLogoInput.files[0];
+            let teamLogoUrl = existingChar.team_logo; // ใช้โลโก้เดิมเป็น default
+
+            if (teamLogoFile) {
+                 if (teamLogoFile.type !== 'image/png') {
+                    showTempMessage(t('formErrorTeamLogo'), 'red');
+                    return;
+                }
+                try {
+                    teamLogoUrl = await readFileAsDataURL(teamLogoFile);
+                } catch (error) {
+                    console.error('Error reading team logo file:', error);
+                    showTempMessage('Error reading team logo file.', 'red');
+                    return;
+                }
+            }
+
+
+            // 3. แยกข้อมูลรวม
+            const infoTH = parseGeneralInfo(document.getElementById('form-general-info-th').value);
+            const infoEN = parseGeneralInfo(document.getElementById('form-general-info-en').value);
+            
+            // 4. อัปเดต Object ตัวละคร
+            const updatedCharacter = {
+                ...existingChar,
+                number: parseInt(document.getElementById('form-number').value) || 0,
+                team_th: document.getElementById('form-team-th').value,
+                team_en: document.getElementById('form-team-en').value,
+                image: imageArray, // Array of Base64
+                team_logo: teamLogoUrl, // Base64 String (หรือ null)
+                // ข้อมูลที่ถูกแยก
+                name_th: infoTH.name,
+                position_th: infoTH.position,
+                ability_th: infoTH.ability,
+                personal_info_th: infoTH.personal_info,
+                name_en: infoEN.name,
+                position_en: infoEN.position,
+                ability_en: infoEN.ability,
+                personal_info_en: infoEN.personal_info,
+            };
+            
+            // 5. แทนที่ในอาร์เรย์
+            characterData[charIndex] = updatedCharacter;
+            saveData();
+            
+            // 6. แสดงข้อความสำเร็จ
+            showTempMessage(t('updateSuccess'), 'blue');
+            
+            // ย้ายกลับไปหน้ารายละเอียด
+            setTimeout(() => {
+                window.location.hash = `#detail/${charId}`;
+            }, 1000);
+        }
+        
+        /**
+         * จัดการการ "แก้ไข" เนื้อเรื่องหลัก
+         */
+        function handleStoryEditSubmit(e) {
+            
+            // ดึงข้อมูลใหม่
+            const newStoryTH = document.getElementById('story-th').value;
+            const newStoryEN = document.getElementById('story-en').value;
+            
+            // อัปเดต State และบันทึก
+            storyData.th = newStoryTH;
+            storyData.en = newStoryEN;
+            saveData();
+            
+            // แสดงข้อความสำเร็จ
+            showTempMessage(t('storySaveSuccess'), 'blue');
+            
+            // ย้ายกลับไปหน้าแสดงเนื้อเรื่อง
+            setTimeout(() => {
+                window.location.hash = `#story`;
+            }, 1000);
+        }
+
+        // เพิ่ม listener สำหรับ submit (ตัวเดียวที่จัดการทุกฟอร์ม)
+        document.getElementById('app').addEventListener('submit', handleFormSubmit);
+
+    </script>
+</body>
+</html>
     <title>กองหน้าหมายเลข 8 | ฐานข้อมูลตัวละคร</title>
     <meta name="description" content="ฐานข้อมูลตัวละครจากการ์ตูนฟุตบอล กองหน้าหมายเลข 8 - มารู้จักกับนักเตะ พลังพิเศษ และเรื่องราวของพวกเขา">
     <meta property="og:title" content="กองหน้าหมายเลข 8 | ฐานข้อมูลตัวละคร">
@@ -1295,3 +2775,4 @@
     </script>
 </body>
 </html>
+
