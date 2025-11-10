@@ -135,14 +135,21 @@
          * ฟังก์ชันสำหรับบันทึกข้อมูลลง localStorage
          */
         function saveData() {
-            localStorage.setItem('projectz_characters', JSON.stringify(characterData));
-            localStorage.setItem('projectz_story', JSON.stringify(storyData));
+            try {
+                localStorage.setItem('projectz_characters', JSON.stringify(characterData));
+                localStorage.setItem('projectz_story', JSON.stringify(storyData));
+                return true; // Indicate success
+            } catch (e) {
+                if (e.name === 'QuotaExceededError') {
+                    console.error("Storage Quota Exceeded:", e);
+                    showTempMessage(t('storageQuotaError'), 'red');
+                } else {
+                    console.error("Error saving data:", e);
+                    showTempMessage(t('saveErrorGeneric'), 'red');
+                }
+                return false; // Indicate failure
+            }
         }
-
-        // --- DEPRECATED HELPER FUNCTIONS (ลบทิ้ง เพราะยกเลิก General Info) ---
-        // function parseGeneralInfo(infoText) { ... }
-        // function combineGeneralInfo(char, lang) { ... }
-
 
         /**
          * คลังคำแปลสำหรับสลับภาษา
@@ -202,6 +209,9 @@
                 formErrorFile: "กรุณาอัปโหลดรูปภาพตัวละคร (PNG)",
                 formErrorTeamLogo: "กรุณาอัปโหลดโลโก้ทีม (PNG)", 
                 formErrorNameExists: (name) => `ข้อผิดพลาด: ชื่อ '${name}' ซ้ำกับตัวละครอื่นแล้ว!`, // NEW ERROR
+                // NEW ERROR MESSAGES
+                storageQuotaError: "พื้นที่เก็บข้อมูลเต็ม! (Quota Exceeded) ไม่สามารถบันทึกข้อมูลใหม่ได้ กรุณาลบข้อมูลเก่าหรือลดขนาดรูปภาพ", 
+                saveErrorGeneric: "เกิดข้อผิดพลาดในการบันทึกข้อมูล!",
                 
                 // Auth Modal Text
                 authTitle: "ใส่รหัสผ่านผู้ดูแลระบบ",
@@ -289,6 +299,9 @@
                 formErrorFile: "Please upload character images (PNGs).",
                 formErrorTeamLogo: "Please upload a team logo (PNG).",
                 formErrorNameExists: (name) => `Error: Name '${name}' already exists!`, // NEW ERROR
+                // NEW ERROR MESSAGES
+                storageQuotaError: "Storage space full! (Quota Exceeded) Cannot save new data. Please delete old data or reduce image size.", 
+                saveErrorGeneric: "An error occurred while saving data!",
                 
                 // Auth Modal Text
                 authTitle: "Enter Admin Password",
@@ -685,7 +698,8 @@
          * @param {number} charId - ID ตัวละคร (ใช้สำหรับตั้ง ID ของ DOM element)
          */
         function renderGallery(images, charId) {
-            if (!images || images.length === 0) {
+            // ตรวจสอบความถูกต้องของ images
+            if (!Array.isArray(images) || images.length === 0 || !images[0]) {
                 return `<img src="https://placehold.co/600x600/cccccc/333333?text=No+Images" alt="No Images" class="w-full rounded-lg shadow-md aspect-square object-cover">`;
             }
 
@@ -1107,8 +1121,10 @@
                 isAuthenticating = false;
 
                 if (authenticated) {
-                    saveData();
-                    showTempMessage(t('saveManualSuccess'), 'blue');
+                    const success = saveData();
+                    if (success) {
+                        showTempMessage(t('saveManualSuccess'), 'blue');
+                    }
                 } else {
                     showTempMessage(appState.lang === 'th' ? 'รหัสผ่านไม่ถูกต้อง! ไม่สามารถบันทึกได้' : 'Incorrect Password! Save aborted.', 'red');
                 }
@@ -1176,15 +1192,21 @@
             if (galleryAction) {
                 const action = galleryAction.dataset.galleryAction;
                 const char = characterData.find(c => c.id === appState.currentCharacterId);
-                const totalImages = char.image.length;
-
-                if (action === 'next') {
-                    appState.currentGalleryIndex = (appState.currentGalleryIndex + 1) % totalImages;
-                } else if (action === 'prev') {
-                    appState.currentGalleryIndex = (appState.currentGalleryIndex - 1 + totalImages) % totalImages;
-                } else if (action === 'go') {
-                    appState.currentGalleryIndex = parseInt(galleryAction.dataset.index);
+                // ตรวจสอบว่ามีรูปภาพหรือไม่ก่อนคำนวณ totalImages
+                const totalImages = (char && Array.isArray(char.image)) ? char.image.length : 0;
+                
+                if (totalImages > 0) {
+                    if (action === 'next') {
+                        appState.currentGalleryIndex = (appState.currentGalleryIndex + 1) % totalImages;
+                    } else if (action === 'prev') {
+                        appState.currentGalleryIndex = (appState.currentGalleryIndex - 1 + totalImages) % totalImages;
+                    } else if (action === 'go') {
+                        appState.currentGalleryIndex = parseInt(galleryAction.dataset.index);
+                    }
+                } else {
+                    appState.currentGalleryIndex = 0;
                 }
+
                 // re-render detail page to update gallery
                 renderApp();
                 return;
@@ -1389,7 +1411,13 @@
             
             // เพิ่มตัวละครใหม่ลงในอาร์เรย์
             characterData.push(newCharacter);
-            saveData();
+            const saveSuccess = saveData();
+            
+            if (!saveSuccess) {
+                // ถ้าบันทึกไม่สำเร็จ เนื่องจาก QuotaExceeded ให้ลบตัวละครที่เพิ่งเพิ่มออก
+                characterData.pop(); 
+                return; // หยุดการทำงาน
+            }
             
             // แสดงข้อความสำเร็จ
             showTempMessage(t('saveSuccess'), 'blue');
@@ -1486,8 +1514,12 @@
             
             // 5. แทนที่ในอาร์เรย์
             characterData[charIndex] = updatedCharacter;
-            saveData();
+            const saveSuccess = saveData();
             
+            if (!saveSuccess) {
+                return; // หยุดการทำงาน
+            }
+
             // 6. แสดงข้อความสำเร็จ
             showTempMessage(t('updateSuccess'), 'blue');
             
@@ -1509,7 +1541,11 @@
             // อัปเดต State และบันทึก
             storyData.th = newStoryTH;
             storyData.en = newStoryEN;
-            saveData();
+            const saveSuccess = saveData();
+            
+            if (!saveSuccess) {
+                return; // หยุดการทำงาน
+            }
             
             // แสดงข้อความสำเร็จ
             showTempMessage(t('storySaveSuccess'), 'blue');
